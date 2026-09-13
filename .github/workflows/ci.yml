@@ -1,0 +1,118 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    secret-scan:
+        name: Gitleaks Secret Scan
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Run Gitleaks
+              uses: gitleaks/gitleaks-action@v2
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    dependency-audit:
+        name: Dependency Security Audit
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  enable-cache: true
+
+            - name: Audit vulnerable packages
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_minutes: 5
+                  max_attempts: 3
+                  command: uv run --with pip-audit pip-audit
+
+    lint-and-types:
+        name: Code Quality & Types
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  enable-cache: true
+
+            - name: Pin Python
+              run: uv python install 3.14
+
+            - name: Install dependencies
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_minutes: 5
+                  max_attempts: 3
+                  command: uv sync --all-groups
+
+            - name: Ruff Check
+              run: uv run ruff check --no-fix
+
+            - name: Ruff Format Check
+              run: uv run ruff format --check
+
+            - name: Type Check (ty)
+              run: uv run ty check
+
+    test:
+        name: Test (Python ${{ matrix.python-version }})
+        runs-on: ubuntu-latest
+        needs: [lint-and-types, dependency-audit]
+        timeout-minutes: 20
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.14"]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  enable-cache: true
+
+            - name: Set up Python ${{ matrix.python-version }}
+              run: uv python install ${{ matrix.python-version }}
+
+            - name: Install dependencies
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_minutes: 5
+                  max_attempts: 3
+                  command: uv sync --all-groups
+
+            - name: Run pytest
+              uses: nick-fields/retry@v3
+              with:
+                  timeout_minutes: 15
+                  max_attempts: 2
+                  command: uv run pytest

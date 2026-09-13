@@ -1,7 +1,7 @@
 [extend]
 useDefault = true
 
-[[allowlist]]
+[allowlist]
 paths = [
   '''tests/.*''',
 ]

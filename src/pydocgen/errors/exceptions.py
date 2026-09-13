@@ -29,17 +29,14 @@ class ConfigurationError(PyDocGenError):
     """Raised when application configuration is invalid or missing."""
 
 
-class ProviderError(PyDocGenError):
-    """Base exception for LLM provider errors (e.g., Gemini)."""
+class FileValidationError(PyDocGenError):
+    """Raised when a target file path fails validation (missing, wrong type, outside root)."""
 
 
-class ProviderAuthenticationError(ProviderError):
-    """Raised when authentication with an LLM provider fails."""
+class ParseError(PyDocGenError):
+    """Raised when a Python file cannot be parsed into an AST."""
 
-
-class AnalysisError(PyDocGenError):
-    """Raised when AST parsing or source code analysis fails."""
-
-
-class GenerationError(PyDocGenError):
-    """Raised when docstring generation fails."""
+    def __init__(self, message: str, line: int | None = None, column: int | None = None):
+        super().__init__(message)
+        self.line = line
+        self.column = column

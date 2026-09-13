@@ -6,32 +6,10 @@ import logging
 import traceback
 from typing import Any
 
-# Standard LogRecord attributes that should not be dumped into custom context
-_LOGRECORD_RESERVED_ATTRS = frozenset(
-    {
-        "args",
-        "asctime",
-        "created",
-        "exc_info",
-        "exc_text",
-        "filename",
-        "funcName",
-        "levelname",
-        "levelno",
-        "lineno",
-        "module",
-        "msecs",
-        "msg",
-        "name",
-        "pathname",
-        "process",
-        "processName",
-        "relativeCreated",
-        "stack_info",
-        "taskName",
-        "thread",
-        "threadName",
-    }
+from pydocgen.config.settings import (
+    DEFAULT_CONSOLE_LOG_FORMAT,
+    DEFAULT_LOG_DATE_FORMAT,
+    RESERVED_LOG_RECORD_KEYS,
 )
 
 
@@ -61,7 +39,7 @@ class JsonFormatter(logging.Formatter):
         # Extract extra contextual fields
         context: dict[str, Any] = {}
         for key, value in record.__dict__.items():
-            if key not in _LOGRECORD_RESERVED_ATTRS and not key.startswith("_"):
+            if key not in RESERVED_LOG_RECORD_KEYS and not key.startswith("_"):
                 context[key] = value
 
         if context:
@@ -84,8 +62,8 @@ class ConsoleFormatter(logging.Formatter):
 
     def __init__(self, fmt: str | None = None, datefmt: str | None = None) -> None:
         super().__init__(
-            fmt=fmt or "%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
-            datefmt=datefmt or "%Y-%m-%d %H:%M:%S",
+            fmt=fmt or DEFAULT_CONSOLE_LOG_FORMAT,
+            datefmt=datefmt or DEFAULT_LOG_DATE_FORMAT,
         )
 
     def format(self, record: logging.LogRecord) -> str:
@@ -94,7 +72,7 @@ class ConsoleFormatter(logging.Formatter):
         # Collect extra context items
         extra_parts: list[str] = []
         for key, value in record.__dict__.items():
-            if key not in _LOGRECORD_RESERVED_ATTRS and not key.startswith("_"):
+            if key not in RESERVED_LOG_RECORD_KEYS and not key.startswith("_"):
                 extra_parts.append(f"{key}={value!r}")
 
         if extra_parts:

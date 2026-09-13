@@ -2,6 +2,7 @@
 
 from pydocgen.errors.exceptions import (
     BatchError,
+    ConcurrencyError,
     ConfigurationError,
     CredentialAlreadyExistsError,
     CredentialError,
@@ -15,6 +16,7 @@ from pydocgen.errors.exceptions import (
 
 __all__ = [
     "BatchError",
+    "ConcurrencyError",
     "ConfigurationError",
     "CredentialAlreadyExistsError",
     "CredentialError",

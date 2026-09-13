@@ -1,40 +1,15 @@
 """Context-aware telemetry logger adapter supporting metadata binding and timers."""
 
+from __future__ import annotations
+
 import logging
 from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Any
 
+from pydocgen.config.settings import RESERVED_LOG_RECORD_KEYS
 from pydocgen.telemetry.context import get_context
 from pydocgen.telemetry.timing import timer
-
-_RESERVED_LOG_RECORD_KEYS = frozenset(
-    {
-        "args",
-        "asctime",
-        "created",
-        "exc_info",
-        "exc_text",
-        "filename",
-        "funcName",
-        "levelname",
-        "levelno",
-        "lineno",
-        "module",
-        "msecs",
-        "msg",
-        "message",
-        "name",
-        "pathname",
-        "process",
-        "processName",
-        "relativeCreated",
-        "stack_info",
-        "taskName",
-        "thread",
-        "threadName",
-    }
-)
 
 
 class TelemetryLogger(logging.LoggerAdapter):
@@ -58,7 +33,7 @@ class TelemetryLogger(logging.LoggerAdapter):
 
         safe_extra: dict[str, Any] = {}
         for k, v in merged_extra.items():
-            if k in _RESERVED_LOG_RECORD_KEYS:
+            if k in RESERVED_LOG_RECORD_KEYS:
                 safe_extra[f"extra_{k}"] = v
             else:
                 safe_extra[k] = v

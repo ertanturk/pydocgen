@@ -1,6 +1,11 @@
 import ast
 from pathlib import Path
 
+from pydocgen.config.settings import (
+    DEFAULT_FILE_ENCODING,
+    DEFAULT_UNKNOWN_FILENAME,
+    PYTHON_FILE_EXTENSION,
+)
 from pydocgen.errors.exceptions import FileValidationError, ParseError
 from pydocgen.telemetry import get_logger
 
@@ -67,9 +72,9 @@ def validate_file_path(path: Path | str, enforce_relative: bool = True) -> Path:
     if not is_file:
         raise FileValidationError(f"Target path is not a regular file: '{file_path}'")
 
-    if file_path.suffix.lower() != ".py":
+    if file_path.suffix.lower() != PYTHON_FILE_EXTENSION:
         raise FileValidationError(
-            f"Expected a Python source file (.py), got: '{file_path.suffix or 'no extension'}'"
+            f"Expected a Python source file ({PYTHON_FILE_EXTENSION}), got: '{file_path.suffix or 'no extension'}'"
         )
 
     logger.debug("File path validated successfully", extra={"path": str(file_path)})
@@ -91,7 +96,7 @@ def load_source(path: Path | str) -> str:
     file_path = Path(path)
     logger.debug("Reading source file", extra={"path": str(file_path)})
     try:
-        source = file_path.read_text(encoding="utf-8-sig")
+        source = file_path.read_text(encoding=DEFAULT_FILE_ENCODING)
         logger.debug(
             "Source file loaded successfully",
             extra={"path": str(file_path), "characters": len(source)},
@@ -113,7 +118,7 @@ def load_source(path: Path | str) -> str:
         raise FileValidationError(f"Cannot read file '{file_path}': {exc.strerror or exc}") from exc
 
 
-def parse_source(source: str, filename: str = "<unknown>") -> ast.Module:
+def parse_source(source: str, filename: str = DEFAULT_UNKNOWN_FILENAME) -> ast.Module:
     """Parse raw Python source string into an AST Module node.
 
     Args:

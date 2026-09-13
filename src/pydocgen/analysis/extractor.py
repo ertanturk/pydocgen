@@ -4,6 +4,7 @@ import ast
 import hashlib
 
 from pydocgen.analysis.models import FunctionInfo, ParameterInfo, ParameterKind
+from pydocgen.config.settings import FUNCTION_ID_HASH_LENGTH
 from pydocgen.telemetry import get_logger
 
 logger = get_logger(__name__)
@@ -59,7 +60,7 @@ class FunctionExtractor(ast.NodeVisitor):
 
         # Generate deterministic function ID based on qualified name and line number
         id_seed = f"{qualified_name}:{node.lineno}:{node.col_offset}"
-        fn_id = hashlib.sha256(id_seed.encode()).hexdigest()[:12]
+        fn_id = hashlib.sha256(id_seed.encode()).hexdigest()[:FUNCTION_ID_HASH_LENGTH]
 
         function_info = FunctionInfo(
             id=fn_id,

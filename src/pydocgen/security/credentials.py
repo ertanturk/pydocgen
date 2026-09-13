@@ -8,6 +8,9 @@ import keyring.errors
 from pydocgen.config.settings import (
     ACCOUNT_NAME,
     ENV_API_KEY_NAMES,
+    INVALID_KEY_CONTROL_CHARS,
+    KEY_MASK_PREFIX_LENGTH,
+    KEY_MASK_SUFFIX_LENGTH,
     MIN_KEY_LENGTH,
     SERVICE_NAME,
 )
@@ -49,7 +52,7 @@ class Credentials:
         if not sanitized_key:
             raise InvalidCredentialError("API key cannot be empty or contain only whitespace.")
 
-        if any(c in sanitized_key for c in ("\n", "\r", "\t", "\0")):
+        if any(c in sanitized_key for c in INVALID_KEY_CONTROL_CHARS):
             raise InvalidCredentialError(
                 "API key contains invalid control characters (e.g., newlines, tabs, or null bytes)."
             )
@@ -79,7 +82,7 @@ class Credentials:
 
         sanitized = api_key.strip()
 
-        return f"{sanitized[:4]}...{sanitized[-4:]}"
+        return f"{sanitized[:KEY_MASK_PREFIX_LENGTH]}...{sanitized[-KEY_MASK_SUFFIX_LENGTH:]}"
 
     @classmethod
     def save_api_key(cls, api_key: str, *, overwrite: bool = False) -> None:

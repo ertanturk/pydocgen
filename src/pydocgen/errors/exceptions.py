@@ -44,3 +44,7 @@ class ParseError(PyDocGenError):
 
 class BatchError(PyDocGenError):
     """Raised when batch formation fails or constraints are violated."""
+
+
+class ConcurrencyError(PyDocGenError):
+    """Raised when execution parameters are invalid or execution fails completely."""

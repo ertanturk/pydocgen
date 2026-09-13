@@ -6,7 +6,12 @@ from collections.abc import Sequence
 from pydocgen.analysis.models import FunctionInfo
 from pydocgen.batching.models import FunctionBatch
 from pydocgen.batching.tokens import estimate_function_tokens
-from pydocgen.config.settings import DEFAULT_PROMPT_OVERHEAD_TOKENS
+from pydocgen.config.settings import (
+    BATCH_ID_HASH_LENGTH,
+    DEFAULT_MAX_BATCH_TOKENS,
+    DEFAULT_MAX_FUNCTIONS_PER_BATCH,
+    DEFAULT_PROMPT_OVERHEAD_TOKENS,
+)
 from pydocgen.errors.exceptions import BatchError
 from pydocgen.telemetry import get_logger
 
@@ -27,15 +32,15 @@ def _generate_batch_id(index: int, functions: Sequence[FunctionInfo]) -> str:
         raise ValueError(f"Batch index must be at least 1, got: {index}")
 
     combined_ids = ",".join(fn.id for fn in functions)
-    content_hash = hashlib.sha256(combined_ids.encode("utf-8")).hexdigest()[:8]
+    content_hash = hashlib.sha256(combined_ids.encode("utf-8")).hexdigest()[:BATCH_ID_HASH_LENGTH]
     return f"batch-{index:03d}-{content_hash}"
 
 
 def create_batches(
     functions: Sequence[FunctionInfo],
-    max_batch_tokens: int = 12000,
+    max_batch_tokens: int = DEFAULT_MAX_BATCH_TOKENS,
     prompt_overhead_tokens: int = DEFAULT_PROMPT_OVERHEAD_TOKENS,
-    max_functions_per_batch: int | None = 25,
+    max_functions_per_batch: int | None = DEFAULT_MAX_FUNCTIONS_PER_BATCH,
 ) -> list[FunctionBatch]:
     """Partition functions into batches respecting token and item limits.
 

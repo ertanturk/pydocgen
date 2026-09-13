@@ -5,11 +5,16 @@ import sys
 from pathlib import Path
 from typing import TextIO
 
+from pydocgen.config.settings import (
+    DEFAULT_LOG_FORMAT,
+    DEFAULT_LOG_LEVEL,
+    DEFAULT_LOGGER_ROOT,
+    LOG_FORMAT_CONSOLE,
+    LOG_FORMAT_JSON,
+)
 from pydocgen.telemetry.filters import SensitiveDataFilter
 from pydocgen.telemetry.formatters import ConsoleFormatter, JsonFormatter
 from pydocgen.telemetry.logger import TelemetryLogger
-
-_ROOT_LOGGER_NAME = "pydocgen"
 
 
 def _resolve_level(level: str | int) -> int:
@@ -35,19 +40,19 @@ def get_logger(name: str | None = None) -> TelemetryLogger:
         TelemetryLogger wrapping the resolved standard logger.
     """
     if not name:
-        logger_name = _ROOT_LOGGER_NAME
-    elif name == _ROOT_LOGGER_NAME or name.startswith(f"{_ROOT_LOGGER_NAME}."):
+        logger_name = DEFAULT_LOGGER_ROOT
+    elif name == DEFAULT_LOGGER_ROOT or name.startswith(f"{DEFAULT_LOGGER_ROOT}."):
         logger_name = name
     else:
-        logger_name = f"{_ROOT_LOGGER_NAME}.{name}"
+        logger_name = f"{DEFAULT_LOGGER_ROOT}.{name}"
 
     raw_logger = logging.getLogger(logger_name)
     return TelemetryLogger(raw_logger)
 
 
 def configure_telemetry(
-    level: str | int = "INFO",
-    format_type: str = "console",
+    level: str | int = DEFAULT_LOG_LEVEL,
+    format_type: str = DEFAULT_LOG_FORMAT,
     stream: TextIO | None = None,
     log_file: Path | str | None = None,
     propagate: bool = False,
@@ -65,7 +70,7 @@ def configure_telemetry(
         Root TelemetryLogger for 'pydocgen'.
     """
     numeric_level = _resolve_level(level)
-    root_logger = logging.getLogger(_ROOT_LOGGER_NAME)
+    root_logger = logging.getLogger(DEFAULT_LOGGER_ROOT)
     root_logger.setLevel(numeric_level)
     root_logger.propagate = propagate
 
@@ -76,12 +81,14 @@ def configure_telemetry(
 
     # Determine formatter
     format_lower = format_type.lower()
-    if format_lower == "json":
+    if format_lower == LOG_FORMAT_JSON:
         formatter: logging.Formatter = JsonFormatter()
-    elif format_lower == "console":
+    elif format_lower == LOG_FORMAT_CONSOLE:
         formatter = ConsoleFormatter()
     else:
-        raise ValueError(f"Unsupported format_type: '{format_type}'. Expected 'console' or 'json'.")
+        raise ValueError(
+            f"Unsupported format_type: '{format_type}'. Expected '{LOG_FORMAT_CONSOLE}' or '{LOG_FORMAT_JSON}'."
+        )
 
     # Attach StreamHandler
     out_stream = stream if stream is not None else sys.stderr
@@ -106,7 +113,7 @@ def configure_telemetry(
 
 def reset_telemetry() -> None:
     """Reset telemetry logger handlers and state to default unconfigured state."""
-    root_logger = logging.getLogger(_ROOT_LOGGER_NAME)
+    root_logger = logging.getLogger(DEFAULT_LOGGER_ROOT)
     for handler in list(root_logger.handlers):
         root_logger.removeHandler(handler)
         handler.close()
@@ -116,7 +123,7 @@ def reset_telemetry() -> None:
 
 
 # Ensure default NullHandler is present so unconfigured library imports are silent
-_pydocgen_root = logging.getLogger(_ROOT_LOGGER_NAME)
+_pydocgen_root = logging.getLogger(DEFAULT_LOGGER_ROOT)
 if not _pydocgen_root.handlers:
     _pydocgen_root.addHandler(logging.NullHandler())
 

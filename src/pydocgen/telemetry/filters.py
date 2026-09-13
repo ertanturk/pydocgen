@@ -4,12 +4,16 @@ import logging
 import re
 from typing import Any
 
+from pydocgen.config.settings import (
+    DEFAULT_REDACTED_MASK,
+    KEY_MASK_PREFIX_LENGTH,
+    KEY_MASK_SUFFIX_LENGTH,
+    SENSITIVE_KEY_NAMES,
+)
+
 # Pattern for Google/Gemini API keys (e.g. AIzaSy...)
 _API_KEY_PATTERN = re.compile(r"\bAIza[0-9A-Za-z_-]{16,50}\b")
 _BEARER_PATTERN = re.compile(r"Bearer\s+([a-zA-Z0-9_\-\.]+)", re.IGNORECASE)
-_SENSITIVE_KEY_NAMES = frozenset(
-    {"key", "api_key", "apikey", "secret", "password", "token", "auth_token"}
-)
 
 
 def redact_sensitive_string(text: str) -> str:
@@ -26,10 +30,10 @@ def redact_sensitive_string(text: str) -> str:
 
     def mask_key(match: re.Match[str]) -> str:
         s = match.group(0)
-        return f"{s[:4]}...{s[-4:]}"
+        return f"{s[:KEY_MASK_PREFIX_LENGTH]}...{s[-KEY_MASK_SUFFIX_LENGTH:]}"
 
     text = _API_KEY_PATTERN.sub(mask_key, text)
-    text = _BEARER_PATTERN.sub(r"Bearer [REDACTED]", text)
+    text = _BEARER_PATTERN.sub(rf"Bearer {DEFAULT_REDACTED_MASK}", text)
     return text
 
 
@@ -47,11 +51,11 @@ def redact_sensitive_data(obj: Any) -> Any:
     if isinstance(obj, dict):
         result: dict[str, Any] = {}
         for k, v in obj.items():
-            if any(name in str(k).lower() for name in _SENSITIVE_KEY_NAMES):
+            if any(name in str(k).lower() for name in SENSITIVE_KEY_NAMES):
                 if isinstance(v, str) and v.startswith("AIza"):
                     result[k] = redact_sensitive_string(v)
                 else:
-                    result[k] = "[REDACTED]"
+                    result[k] = DEFAULT_REDACTED_MASK
             else:
                 result[k] = redact_sensitive_data(v)
         return result

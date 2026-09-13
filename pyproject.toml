@@ -50,6 +50,9 @@ minversion = "8.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+filterwarnings = [
+    "ignore:'_UnionGenericAlias' is deprecated and slated for removal in Python 3.17:DeprecationWarning:google.genai.types",
+]
 
 [tool.ty.environment]
 python-version = "3.14"

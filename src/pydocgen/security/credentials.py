@@ -277,3 +277,6 @@ class Credentials:
                 or no environment fallback is available.
         """
         return cls.get_api_key(include_env=include_env) is not None
+
+
+get_api_key = Credentials.get_api_key

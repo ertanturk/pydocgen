@@ -1,6 +1,7 @@
 """Exceptions and error handling for pydocgen."""
 
 from pydocgen.errors.exceptions import (
+    AuthenticationError,
     BatchError,
     ConcurrencyError,
     ConfigurationError,
@@ -8,13 +9,25 @@ from pydocgen.errors.exceptions import (
     CredentialError,
     CredentialNotFoundError,
     CredentialStorageError,
+    ExitCode,
     FileValidationError,
+    FormattingError,
+    GenerationError,
     InvalidCredentialError,
     ParseError,
+    PipelineExecutionError,
+    ProviderError,
+    ProviderResponseError,
+    ProviderTimeoutError,
     PyDocGenError,
+    PydocgenError,
+    RateLimitError,
+    SourceEditError,
+    ValidationError,
 )
 
 __all__ = [
+    "AuthenticationError",
     "BatchError",
     "ConcurrencyError",
     "ConfigurationError",
@@ -22,8 +35,19 @@ __all__ = [
     "CredentialError",
     "CredentialNotFoundError",
     "CredentialStorageError",
+    "ExitCode",
     "FileValidationError",
+    "FormattingError",
+    "GenerationError",
     "InvalidCredentialError",
     "ParseError",
+    "PipelineExecutionError",
+    "ProviderError",
+    "ProviderResponseError",
+    "ProviderTimeoutError",
     "PyDocGenError",
+    "PydocgenError",
+    "RateLimitError",
+    "SourceEditError",
+    "ValidationError",
 ]

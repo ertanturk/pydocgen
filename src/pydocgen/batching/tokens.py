@@ -7,6 +7,9 @@ from pydocgen.config.settings import (
     CHARS_PER_TOKEN,
     PER_FUNCTION_OVERHEAD_TOKENS,
 )
+from pydocgen.telemetry import get_logger
+
+logger = get_logger(__name__)
 
 
 def estimate_text_tokens(text: str, chars_per_token: float = CHARS_PER_TOKEN) -> int:

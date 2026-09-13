@@ -55,9 +55,83 @@ class TestSettings:
         assert "args" in settings.RESERVED_LOG_RECORD_KEYS
         assert "api_key" in settings.SENSITIVE_KEY_NAMES
 
+    def test_provider_settings(self) -> None:
+        assert settings.DEFAULT_GEMINI_MODEL == "gemini-3.8-flash"
+        assert settings.FAST_FAIL_PROBE_PROMPT == "ok"
+        assert settings.DEFAULT_PROBE_TIMEOUT == 10.0
+        assert settings.DEFAULT_FAST_FAIL is True
+        assert settings.DEFAULT_MAX_OUTPUT_TOKENS == 8192
+        assert settings.DEFAULT_TEMPERATURE == 0.1
+        assert settings.DEFAULT_REQUEST_TIMEOUT == 60.0
+
+    def test_formatting_and_validation_settings(self) -> None:
+        assert settings.DEFAULT_INDENT_WIDTH == 4
+        assert settings.GOOGLE_SECTION_ARGS == "Args:"
+        assert settings.GOOGLE_SECTION_RETURNS == "Returns:"
+        assert settings.GOOGLE_SECTION_RAISES == "Raises:"
+        assert settings.DEFAULT_STRICT_RAISES is True
+
+    def test_editing_settings(self) -> None:
+        assert settings.DEFAULT_INDENTATION == "    "
+        assert settings.TEMP_FILE_SUFFIX == ".pydocgen.tmp"
+        assert settings.DIFF_SEPARATOR_CHAR == "─"
+        assert settings.DIFF_SEPARATOR_LENGTH == 60
+        assert "y" in settings.CONFIRMATION_AFFIRMATIVE
+        assert settings.COLOR_RED == "\033[31m"
+        assert settings.COLOR_GREEN == "\033[32m"
+        assert settings.COLOR_CYAN == "\033[36m"
+        assert settings.COLOR_BOLD == "\033[1m"
+        assert settings.COLOR_RESET == "\033[0m"
+
     def test_package_exports_consistency(self) -> None:
         assert set(settings.__all__) == set(config_pkg.__all__)
         for name in settings.__all__:
             assert hasattr(settings, name)
             assert hasattr(config_pkg, name)
             assert getattr(settings, name) is getattr(config_pkg, name)
+
+    def test_exception_exit_codes(self) -> None:
+        from pydocgen.errors.exceptions import (
+            AuthenticationError,
+            BatchError,
+            ConcurrencyError,
+            ConfigurationError,
+            ExitCode,
+            FileValidationError,
+            FormattingError,
+            GenerationError,
+            InvalidCredentialError,
+            ParseError,
+            PipelineExecutionError,
+            ProviderError,
+            ProviderResponseError,
+            ProviderTimeoutError,
+            PyDocGenError,
+            PydocgenError,
+            RateLimitError,
+            SourceEditError,
+            ValidationError,
+        )
+
+        assert issubclass(PydocgenError, PyDocGenError)
+        assert issubclass(FileValidationError, PydocgenError)
+        assert issubclass(ParseError, PydocgenError)
+        assert issubclass(BatchError, PydocgenError)
+        assert issubclass(ConcurrencyError, PydocgenError)
+
+        assert FileValidationError("test").exit_code == ExitCode.NOINPUT
+        assert ParseError("test").exit_code == ExitCode.DATAERR
+        assert BatchError("test").exit_code == ExitCode.DATAERR
+        assert ConcurrencyError("test").exit_code == ExitCode.SOFTWARE
+        assert ConfigurationError("test").exit_code == ExitCode.CONFIG
+        assert InvalidCredentialError("test").exit_code == ExitCode.USAGE
+        assert AuthenticationError("test").exit_code == ExitCode.CONFIG
+        assert RateLimitError("test").exit_code == ExitCode.TEMPFAIL
+        assert ProviderTimeoutError("test").exit_code == ExitCode.TEMPFAIL
+        assert ProviderResponseError("test").exit_code == ExitCode.DATAERR
+        assert ProviderError("test").exit_code == ExitCode.UNAVAILABLE
+        assert SourceEditError("test").exit_code == ExitCode.SOFTWARE
+        assert PipelineExecutionError("test").exit_code == ExitCode.SOFTWARE
+        assert FormattingError("test").exit_code == ExitCode.DATAERR
+        assert ValidationError("test").exit_code == ExitCode.DATAERR
+        assert GenerationError("test").exit_code == ExitCode.SOFTWARE

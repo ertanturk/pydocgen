@@ -163,14 +163,15 @@ def extract_functions(source: str, tree: ast.AST) -> list[FunctionInfo]:
         raise TypeError(f"Expected source code as string, got: {type(source).__name__}")
     if not isinstance(tree, ast.AST):
         raise TypeError(f"Expected tree as ast.AST node, got: {type(tree).__name__}")
-    logger.debug("Extracting functions from AST", extra={"source_len": len(source)})
-    extractor = FunctionExtractor(source)
-    extractor.visit(tree)
-    logger.info(
-        "Extracted functions from AST",
-        extra={"function_count": len(extractor.functions)},
-    )
-    return extractor.functions
+    with logger.timed("extractor.extract_functions"):
+        logger.debug("Extracting functions from AST", extra={"source_len": len(source)})
+        extractor = FunctionExtractor(source)
+        extractor.visit(tree)
+        logger.info(
+            "Extracted functions from AST",
+            extra={"function_count": len(extractor.functions)},
+        )
+        return extractor.functions
 
 
 def extract_undocumented_functions(source: str, tree: ast.AST) -> list[FunctionInfo]:

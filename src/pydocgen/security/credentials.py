@@ -17,6 +17,9 @@ from pydocgen.errors.exceptions import (
     CredentialStorageError,
     InvalidCredentialError,
 )
+from pydocgen.telemetry import get_logger
+
+logger = get_logger(__name__)
 
 
 class Credentials:
@@ -100,11 +103,27 @@ class Credentials:
 
         try:
             keyring.set_password(cls.service_name, cls.account_name, validated_key)
+            logger.info(
+                "API key successfully saved to secure keyring",
+                extra={
+                    "service": cls.service_name,
+                    "account": cls.account_name,
+                    "masked_key": cls.mask_api_key(validated_key),
+                },
+            )
         except keyring.errors.KeyringError as e:
+            logger.error(
+                "Failed to save API key to secure keyring",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
             raise CredentialStorageError(
                 f"Failed to save API key to secure keyring storage: {e}"
             ) from e
         except Exception as e:
+            logger.error(
+                "Unexpected error occurred while saving API key",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
             raise CredentialStorageError(
                 f"Unexpected error occurred while saving API key to storage: {e}"
             ) from e
@@ -129,14 +148,26 @@ class Credentials:
         try:
             stored_key = keyring.get_password(cls.service_name, cls.account_name)
             if stored_key and stored_key.strip():
+                logger.debug(
+                    "API key retrieved from keyring",
+                    extra={"service": cls.service_name, "account": cls.account_name},
+                )
                 return stored_key.strip()
         except (keyring.errors.KeyringError, Exception) as e:
             keyring_error = e
+            logger.warning(
+                "Failed to access keyring for API key retrieval",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
 
         if include_env:
             for env_var in ENV_API_KEY_NAMES:
                 env_key = os.environ.get(env_var)
                 if env_key and env_key.strip():
+                    logger.debug(
+                        "API key retrieved from environment variable",
+                        extra={"env_var": env_var},
+                    )
                     return env_key.strip()
 
         if keyring_error is not None:
@@ -167,11 +198,27 @@ class Credentials:
 
         try:
             keyring.set_password(cls.service_name, cls.account_name, validated_key)
+            logger.info(
+                "API key successfully updated in secure keyring",
+                extra={
+                    "service": cls.service_name,
+                    "account": cls.account_name,
+                    "masked_key": cls.mask_api_key(validated_key),
+                },
+            )
         except keyring.errors.KeyringError as e:
+            logger.error(
+                "Failed to update API key in secure keyring",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
             raise CredentialStorageError(
                 f"Failed to update API key in secure keyring storage: {e}"
             ) from e
         except Exception as e:
+            logger.error(
+                "Unexpected error occurred while updating API key",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
             raise CredentialStorageError(
                 f"Unexpected error occurred while updating API key: {e}"
             ) from e
@@ -189,13 +236,25 @@ class Credentials:
 
         try:
             keyring.delete_password(cls.service_name, cls.account_name)
+            logger.info(
+                "API key successfully deleted from secure keyring",
+                extra={"service": cls.service_name, "account": cls.account_name},
+            )
         except keyring.errors.PasswordDeleteError as e:
             raise CredentialNotFoundError("No API key found in keyring to delete.") from e
         except keyring.errors.KeyringError as e:
+            logger.error(
+                "Failed to delete API key from secure keyring",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
             raise CredentialStorageError(
                 f"Failed to delete API key from secure keyring storage: {e}"
             ) from e
         except Exception as e:
+            logger.error(
+                "Unexpected error occurred while deleting API key",
+                extra={"service": cls.service_name, "account": cls.account_name, "error": str(e)},
+            )
             raise CredentialStorageError(
                 f"Unexpected error occurred while deleting API key: {e}"
             ) from e

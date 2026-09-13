@@ -4,6 +4,9 @@ import ast
 import hashlib
 
 from pydocgen.analysis.models import FunctionInfo, ParameterInfo, ParameterKind
+from pydocgen.telemetry import get_logger
+
+logger = get_logger(__name__)
 
 
 class FunctionExtractor(ast.NodeVisitor):
@@ -159,14 +162,25 @@ def extract_functions(source: str, tree: ast.AST) -> list[FunctionInfo]:
         raise TypeError(f"Expected source code as string, got: {type(source).__name__}")
     if not isinstance(tree, ast.AST):
         raise TypeError(f"Expected tree as ast.AST node, got: {type(tree).__name__}")
+    logger.debug("Extracting functions from AST", extra={"source_len": len(source)})
     extractor = FunctionExtractor(source)
     extractor.visit(tree)
+    logger.info(
+        "Extracted functions from AST",
+        extra={"function_count": len(extractor.functions)},
+    )
     return extractor.functions
 
 
 def extract_undocumented_functions(source: str, tree: ast.AST) -> list[FunctionInfo]:
     """Extract only functions that lack a docstring."""
-    return [fn for fn in extract_functions(source, tree) if not fn.has_docstring]
+    all_funcs = extract_functions(source, tree)
+    undocumented = [fn for fn in all_funcs if not fn.has_docstring]
+    logger.info(
+        "Extracted undocumented functions",
+        extra={"total": len(all_funcs), "undocumented": len(undocumented)},
+    )
+    return undocumented
 
 
 __all__ = [

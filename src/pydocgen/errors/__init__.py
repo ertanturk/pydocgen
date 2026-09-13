@@ -1,6 +1,7 @@
 """Exceptions and error handling for pydocgen."""
 
 from pydocgen.errors.exceptions import (
+    BatchError,
     ConfigurationError,
     CredentialAlreadyExistsError,
     CredentialError,
@@ -13,6 +14,7 @@ from pydocgen.errors.exceptions import (
 )
 
 __all__ = [
+    "BatchError",
     "ConfigurationError",
     "CredentialAlreadyExistsError",
     "CredentialError",

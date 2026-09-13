@@ -40,3 +40,7 @@ class ParseError(PyDocGenError):
         super().__init__(message)
         self.line = line
         self.column = column
+
+
+class BatchError(PyDocGenError):
+    """Raised when batch formation fails or constraints are violated."""

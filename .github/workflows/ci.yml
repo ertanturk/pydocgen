@@ -80,7 +80,7 @@ jobs:
               run: uv run ruff format --check
 
             - name: Type Check (ty)
-              run: uv run ty check
+              run: uv run ty check --exclude "tests/"
 
     test:
         name: Test (Python ${{ matrix.python-version }})

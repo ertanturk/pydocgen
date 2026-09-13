@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pydocgen"
+dynamic = ["version"]
+description = "AI-assisted Google-style docstring generator for Python source files."
+readme = "README.md"
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [
+    { name = "Ertan Tunç Türk" },
+]
+dependencies = [
+    "google-genai>=2.23.0",
+    "keyring>=25.7.0",
+    "pydantic>=2.13.5",
+    "typer>=0.27.2",
+]
+
+[tool.hatch.version]
+path = "src/pydocgen/__init__.py"
+
+[project.scripts]
+pydocgen = "pydocgen.cli.app:main"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.7",
+    "ty>=0.0.80",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pydocgen"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.ty.environment]
+python-version = "3.14"
